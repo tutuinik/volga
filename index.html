@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Сметы Волги">
     
-    <title>Студия на Волге V66.1 - Final Full</title>
+    <title>Студия на Волге V66.1 - Final Full Stable</title>
     <style>
         :root { 
             --main: #4d8b81; 
@@ -35,7 +35,8 @@
 
         .brand-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
         .brand-title-box h1 { color: #2c4144; font-size: 28px; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 8px; }
-        
+        .brand-title-box span { color: #94a3b8; font-size: 12px; font-weight: 700; text-transform: uppercase; }
+
         .total-box { text-align: right; }
         .total-box small { font-size: 10px; font-weight: 800; color: #1e293b; display: block; }
         .total-box b { font-size: 32px; color: #1e293b; font-weight: 900; }
@@ -53,7 +54,11 @@
             font-size: 16px; margin-bottom: 10px; outline: none; background: #f8fafc; text-align: center;
         }
 
-        .search-box { width: 100%; padding: 15px; border: 2px solid var(--main); border-radius: 18px; font-size: 16px; margin-bottom: 15px; }
+        .search-box { 
+            position: sticky; top: 0; z-index: 10; background: white; border: 2px solid var(--main);
+            border-radius: 18px; padding: 15px; font-size: 16px; margin-bottom: 15px; 
+            box-shadow: 0 8px 15px rgba(77, 139, 129, 0.1);
+        }
 
         .f-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; margin-bottom: 5px;}
         .chip { padding: 10px 18px; background: white; border-radius: 12px; font-size: 12px; font-weight: 700; white-space: nowrap; color: #64748b; border: 1px solid #e2e8f0; }
@@ -78,7 +83,7 @@
     <div class="brand-header">
         <div class="brand-title-box">
             <h1>Студия на Волге 🌊</h1>
-            <span style="color:#94a3b8; font-size:12px; font-weight:700;">МАТЕРИАЛЫ И РАБОТА</span>
+            <span>МАТЕРИАЛЫ И РАБОТА</span>
         </div>
         <div class="total-box">
             <small>ИТОГО</small>
@@ -96,10 +101,10 @@
     <div class="input-group">
         <label>Добавить операцию</label>
         <input type="date" id="f-date">
-        <input type="text" id="f-name" placeholder="Название (материалы или работа)">
+        <input type="text" id="f-name" placeholder="Название (материалы или работа)" style="text-align: left;">
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
             <input type="number" id="f-price" placeholder="Сумма ₽">
-            <input type="text" id="f-store" placeholder="Магазин / ФИО">
+            <input type="text" id="f-store" placeholder="Магазин / ФИО" style="text-align: left;">
         </div>
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
             <select id="f-type">
@@ -124,7 +129,7 @@
     <button onclick="save()" class="btn-main">Добавить запись</button>
 
     <div style="margin-top: 25px;">
-        <input type="text" id="q-search" class="search-box" placeholder="🔍 Поиск..." oninput="render()">
+        <input type="text" id="q-search" class="search-box" placeholder="🔍 Найти..." oninput="render()">
     </div>
 
     <div class="f-scroll">
@@ -151,10 +156,10 @@
 
     <div style="margin-top: 30px; border-top: 1px dashed #cbd5e1; padding-top: 20px;">
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
-            <button onclick="ex()" style="background:white; border:1px solid #ddd; border-radius:12px; padding:10px; font-size:10px; font-weight:800; color:#64748b; cursor:pointer;">ЭКСПОРТ</button>
+            <button onclick="ex()" style="background:white; border:1px solid #ddd; border-radius:12px; padding:10px; font-size:10px; font-weight:800; color:#64748b; cursor:pointer;">ЭКСПОРТ (КОПИРОВАТЬ)</button>
             <button onclick="im()" style="background:#cbd5e1; border:none; border-radius:12px; padding:10px; font-size:10px; font-weight:800; color:white; cursor:pointer;">ИМПОРТ</button>
         </div>
-        <input type="text" id="io-box" placeholder="Код данных для сохранения" style="margin-top:10px; height:35px; font-size:10px; border:1px solid #e2e8f0; border-radius:10px; width:100%; padding: 5px; text-align: center;">
+        <input type="text" id="io-box" placeholder="Код данных" style="margin-top:10px; height:35px; font-size:10px; border:1px solid #e2e8f0; border-radius:10px; width:100%; padding: 5px; text-align: center;">
     </div>
 </div>
 
@@ -179,7 +184,7 @@
                     canvas.width = w; canvas.height = h;
                     canvas.getContext('2d').drawImage(img, 0, 0, w, h);
                     tempImg = canvas.toDataURL('image/jpeg', 0.5); 
-                    document.getElementById('p-status').innerText = "✅ ФОТО ПРИНЯТО";
+                    document.getElementById('p-status').innerText = "✅ ФОТО ГОТОВО";
                 };
                 img.src = e.target.result;
             };
@@ -212,7 +217,7 @@
         const fil = db.filter(i => {
             const matchType = (curF.t === 'Все' || i.t === curF.t);
             const matchCat = (curF.c === 'Все' || i.cat === curF.c);
-            const matchSearch = (i.n.toLowerCase().includes(query));
+            const matchSearch = (i.n.toLowerCase().includes(query) || (i.s && i.s.toLowerCase().includes(query)));
             return matchType && matchCat && matchSearch;
         });
 
@@ -220,15 +225,16 @@
             total += Number(i.p);
             list.innerHTML += `<div class="card ${i.t.includes('Работа')?'is-work':''}">
                 <div>
-                    <div style="font-size:10px; font-weight:800; color:#94a3b8;">${new Date(i.d).toLocaleDateString('ru-RU')} • ${i.cat || 'Категория'}</div>
-                    <div style="font-weight:700;">${i.n}</div>
+                    <div style="font-size:10px; font-weight:800; color:#94a3b8; margin-bottom:4px;">${new Date(i.d).toLocaleDateString('ru-RU')} • ${i.cat}</div>
+                    <div style="font-weight:700; color:#2c4144;">${i.n}</div>
+                    <div style="font-size:11px; color:#64748b;">${i.s || '-'}</div>
                 </div>
                 <div style="text-align:right;">
-                    <div style="color:var(--main); font-weight:800;">${Number(i.p).toLocaleString()} ₽</div>
-                    <div style="display:flex; gap:6px; margin-top:8px; justify-content: flex-end;">
+                    <div style="color:var(--main); font-weight:800; font-size:18px;">${Number(i.p).toLocaleString()} ₽</div>
+                    <div style="display:flex; gap:6px; margin-top:8px; justify-content:flex-end;">
                         ${i.img ? `<div class="icon-btn" onclick="openImg('${i.img}')">🖼️</div>` : ''}
                         <div class="icon-btn" onclick="editItem('${i.id}')">✏️</div>
-                        <div class="icon-btn" onclick="delItem('${i.id}')" style="color:red;">🗑️</div>
+                        <div class="icon-btn" onclick="delItem('${i.id}')" style="color:#ef4444;">🗑️</div>
                     </div>
                 </div>
             </div>`;
@@ -242,6 +248,7 @@
             document.getElementById('p-m').innerText = Math.round(mS/grand*100)+'%';
             document.getElementById('p-w').innerText = Math.round(wS/grand*100)+'%';
             document.getElementById('bar-cats').innerHTML = Object.keys(colors).map(k => cS[k]>0 ? `<div style="width:${(cS[k]/grand*100)}%; background:${colors[k]}; height:100%"></div>` : '').join('');
+            document.getElementById('leg-cats').innerHTML = Object.keys(colors).filter(k=>cS[k]>0).map(k => `<div style="font-size:9px; font-weight:bold; background:white; padding:6px; border-radius:10px; display:flex; justify-content:space-between; border:1px solid #f1f5f9; color:${colors[k]};"><span>${k}</span><span>${Math.round(cS[k]/grand*100)}%</span></div>`).join('');
         }
         localStorage.setItem('volga_v66', JSON.stringify(db));
     }
@@ -249,31 +256,38 @@
     function openImg(src) { document.getElementById('m-img').src = src; document.getElementById('p-modal').style.display = 'flex'; }
 
     function save() {
-        const n = document.getElementById('f-name').value, p = document.getElementById('f-price').value, d = document.getElementById('f-date').value;
-        if(!n || !p || !d) return alert('Заполните данные!');
-        db.unshift({ id: Date.now().toString(), d: d, n: n, p: p, t: document.getElementById('f-type').value, cat: document.getElementById('f-cat').value, img: tempImg });
-        document.getElementById('f-name').value = ''; document.getElementById('f-price').value = ''; 
+        const n = document.getElementById('f-name').value, p = document.getElementById('f-price').value, d = document.getElementById('f-date').value, s = document.getElementById('f-store').value;
+        if(!n || !p || !d) return alert('Заполните поля!');
+        db.unshift({ id: Date.now().toString(), d: d, n: n, p: p, s: s, t: document.getElementById('f-type').value, cat: document.getElementById('f-cat').value, img: tempImg });
+        document.getElementById('f-name').value = ''; document.getElementById('f-price').value = ''; document.getElementById('f-store').value = ''; 
         tempImg = ""; document.getElementById('p-status').innerText = "📸 ПРИКРЕПИТЬ ФОТО / ЧЕК";
         render();
     }
 
-    function delItem(id) { if(confirm('Удалить запись?')) { db = db.filter(i => i.id !== id); render(); } }
-
     function editItem(id) {
-        const i = db.find(x => x.id === id);
-        if(!i) return;
+        const i = db.find(x => x.id === id); if(!i) return;
         document.getElementById('f-date').value = i.d; document.getElementById('f-name').value = i.n;
-        document.getElementById('f-price').value = i.p; document.getElementById('f-type').value = i.t;
-        document.getElementById('f-cat').value = i.cat; tempImg = i.img || "";
-        db = db.filter(x => x.id !== id); render(); window.scrollTo(0,0);
+        document.getElementById('f-price').value = i.p; document.getElementById('f-store').value = i.s || "";
+        document.getElementById('f-type').value = i.t; document.getElementById('f-cat').value = i.cat;
+        tempImg = i.img || ""; if(tempImg) document.getElementById('p-status').innerText = "✅ ФОТО ЕСТЬ";
+        db = db.filter(x => x.id !== id); render(); window.scrollTo({top: 0, behavior: 'smooth'});
     }
+
+    function delItem(id) { if(confirm('Удалить запись?')) { db = db.filter(i => i.id !== id); render(); } }
     
+    function ex() { 
+        const code = btoa(unescape(encodeURIComponent(JSON.stringify(db))));
+        document.getElementById('io-box').value = code;
+        navigator.clipboard.writeText(code).then(() => alert('Код скопирован в буфер!'));
+    }
+    function im() { try { const code = document.getElementById('io-box').value; if(!code) return; db = JSON.parse(decodeURIComponent(escape(atob(code)))); render(); } catch(e){ alert('Ошибка кода!'); } }
+
     function generateReport() {
         const query = document.getElementById('q-search').value.toLowerCase();
         const fil = db.filter(i => {
             const matchType = (curF.t === 'Все' || i.t === curF.t);
             const matchCat = (curF.c === 'Все' || i.cat === curF.c);
-            const matchSearch = (i.n.toLowerCase().includes(query));
+            const matchSearch = (i.n.toLowerCase().includes(query) || (i.s && i.s.toLowerCase().includes(query)));
             return matchType && matchCat && matchSearch;
         }).sort((a,b)=>new Date(b.d)-new Date(a.d));
         let t=0, m=0, w=0, cS={}; Object.keys(colors).forEach(k=>cS[k]=0);
@@ -282,7 +296,7 @@
             let pVal = Number(i.p); t += pVal; if(i.t.includes('Работа')) w += pVal; else m += pVal; cS[i.cat] += pVal;
             let curDate = new Date(i.d).toLocaleDateString('ru-RU', {day:'numeric', month:'long', year:'numeric'});
             if(curDate !== lastDate) { tableHTML += `<tr><td colspan="4" style="background:#f8fafc; padding:12px; font-weight:800; color:#64748b; font-size:11px;">🗓 ${curDate}</td></tr>`; lastDate = curDate; }
-            tableHTML += `<tr style="background:white;"><td style="width:4px; padding:0; background:${colors[i.cat]};"></td><td style="padding:12px;"><div style="font-weight:700; font-size:14px;">${i.n}</div><div style="font-size:11px; color:#94a3b8;">${i.cat}</div></td><td style="padding:12px; font-size:11px; text-align:center;">${i.t}</td><td style="padding:12px; text-align:right; font-weight:800; color:var(--main);">${pVal.toLocaleString()} ₽</td></tr>`;
+            tableHTML += `<tr style="background:white;"><td style="width:4px; padding:0; background:${colors[i.cat]};"></td><td style="padding:12px;"><div style="font-weight:700; font-size:14px;">${i.n}</div><div style="font-size:11px; color:#94a3b8;">${i.s || '-'} • ${i.cat}</div></td><td style="padding:12px; font-size:11px; text-align:center;">${i.t}</td><td style="padding:12px; text-align:right; font-weight:800; color:var(--main);">${pVal.toLocaleString()} ₽</td></tr>`;
         });
         let mP=Math.round(m/t*100)||0, wP=Math.round(w/t*100)||0, last=0;
         let grad=Object.keys(colors).map(k=>{if(cS[k]===0) return ''; let p=(cS[k]/t*100); let s=` ${colors[k]} ${last}% ${last+p}%`; last+=p; return s;}).filter(x=>x).join(',');
@@ -290,9 +304,6 @@
         win.document.write(`<html><head><meta charset="UTF-8"><style>body{font-family:sans-serif; background:#f1f5f9; padding:20px;} .paper{background:white; border-radius:30px; padding:30px; max-width:800px; margin:auto;} .h{display:flex; justify-content:space-between; border-bottom:2px solid #eee; padding-bottom:20px; margin-bottom:20px;} .box{background:#f8fafc; padding:15px; border-radius:20px; display:flex; align-items:center; gap:15px; flex:1;} .pie{width:60px; height:60px; border-radius:50%;} table{width:100%; border-collapse:collapse;} .nav-btn{padding:10px 20px; border-radius:10px; border:none; color:white; font-weight:bold; cursor:pointer; margin-bottom:20px;} @media print {.nav-btn {display:none;}}</style></head><body><button onclick="window.close()" class="nav-btn" style="background:#64748b;">⬅ НАЗАД</button><button onclick="window.print()" class="nav-btn" style="background:#4d8b81; float:right;">🖨 ПЕЧАТЬ</button><div class="paper"><div class="h"><div><h1 style="margin:0; color:#4d8b81;">Студия на Волге 🌊</h1><p style="color:#94a3b8; font-weight:700; margin:0;">ОТЧЕТ ПО СМЕТЕ</p></div><div style="text-align:right"><small>ИТОГО</small><h1 style="margin:0;">${t.toLocaleString()} ₽</h1></div></div><div style="display:flex; gap:15px; margin-bottom:30px;"><div class="box"><div class="pie" style="background:conic-gradient(#4d8b81 ${mP}%, #1e293b 0)"></div><div><small>📦 МАТЕРИАЛЫ: ${mP}%<br>🛠️ РАБОТА: ${wP}%</small></div></div><div class="box"><div class="pie" style="background:conic-gradient(${grad})"></div><div style="font-size:9px; font-weight:800; display:grid; grid-template-columns:1fr 1fr; gap:3px 10px;">${Object.keys(colors).filter(k=>cS[k]>0).map(k=>`<span><b style="color:${colors[k]}">■</b> ${k} ${Math.round(cS[k]/t*100)}%</span>`).join('')}</div></div></div><table><tbody>${tableHTML}</tbody></table></div></body></html>`);
         win.document.close();
     }
-
-    function ex() { const code = btoa(unescape(encodeURIComponent(JSON.stringify(db)))); document.getElementById('io-box').value = code; alert('Код скопирован!'); }
-    function im() { try { const code = document.getElementById('io-box').value; db = JSON.parse(decodeURIComponent(escape(atob(code)))); render(); } catch(e){ alert('Ошибка кода!'); } }
 </script>
 </body>
 </html>
