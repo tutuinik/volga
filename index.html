@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Сметы Волги">
+    
+    <title>Студия на Волге V66.1 - Final Stable</title>
+    <style>
+        :root { 
+            --main: #4d8b81; 
+            --accent: #6ee7b7;
+            --dark: #1e293b; 
+            --glass: rgba(255, 255, 255, 0.95);
+            --border: rgba(255, 255, 255, 0.6);
+        }
+
+        * { box-sizing: border-box !important; -webkit-tap-highlight-color: transparent; font-family: -apple-system, sans-serif; }
+        
+        body { 
+            margin: 0; padding: 15px; 
+            background: #00f2fe;
+            background-image: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            min-height: 100vh;
+        }
+
+        .app { 
+            background: var(--glass);
+            backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+            border-radius: 40px; max-width: 420px; margin: auto; padding: 25px; 
+            box-shadow: 0 30px 60px rgba(0,0,0,0.15); border: 1px solid var(--border);
+        }
+
+        .brand-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; }
+        .brand-title-box h1 { color: #2c4144; font-size: 28px; font-weight: 800; margin: 0; display: flex; align-items: center; gap: 8px; }
+        
+        .total-box { text-align: right; }
+        .total-box small { font-size: 10px; font-weight: 800; color: #1e293b; display: block; }
+        .total-box b { font-size: 32px; color: #1e293b; font-weight: 900; }
+
+        .stats { background: white; border-radius: 25px; padding: 18px; margin-bottom: 20px; border: 1px solid #edf2f7; }
+        .st-header { display: flex; justify-content: space-between; font-size: 10px; font-weight: 800; color: #94a3b8; margin-bottom: 8px; text-transform: uppercase; }
+        .bar-bg { height: 10px; background: #f1f5f9; border-radius: 5px; display: flex; overflow: hidden; margin-bottom: 12px; }
+        .bar-fill { height: 100%; transition: width 0.8s ease; }
+
+        .input-group { background: white; border-radius: 25px; padding: 15px; border: 1px solid #edf2f7; margin-bottom: 20px; }
+        label { display: block; font-size: 9px; font-weight: 900; color: #64748b; margin: 0 0 5px 10px; text-transform: uppercase; }
+        
+        input, select { 
+            width: 100%; padding: 14px; border: 1.5px solid #f1f5f9; border-radius: 15px; 
+            font-size: 16px; margin-bottom: 10px; outline: none; background: #f8fafc; text-align: center;
+        }
+
+        .search-box { width: 100%; padding: 15px; border: 2px solid var(--main); border-radius: 18px; font-size: 16px; margin-bottom: 15px; }
+
+        .f-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 10px; scrollbar-width: none; margin-bottom: 5px;}
+        .chip { padding: 10px 18px; background: white; border-radius: 12px; font-size: 12px; font-weight: 700; white-space: nowrap; color: #64748b; border: 1px solid #e2e8f0; }
+        .chip.active { background: var(--main); color: white; border-color: var(--main); }
+
+        .btn-main { background: var(--main); color: white; border: none; padding: 18px; border-radius: 18px; font-weight: 800; width: 100%; font-size: 16px; cursor: pointer; text-transform: uppercase; }
+
+        .card { background: white; border-radius: 22px; padding: 16px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 6px solid var(--main); box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
+        .card.is-work { border-left-color: var(--dark); }
+        .icon-btn { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+
+        #p-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:9999; align-items:center; justify-content:center; }
+        #p-modal img { max-width: 95%; max-height: 90%; border-radius: 15px; }
+        .photo-btn { font-size: 11px; padding: 12px; background: #f8fafc; border: 1.5px dashed var(--main); color: var(--main); font-weight: 700; border-radius: 15px; text-align: center; cursor: pointer; margin-bottom: 10px; }
+    </style>
+</head>
+<body onload="render()">
+
+<div id="p-modal" onclick="this.style.display='none'"><img id="m-img" src=""></div>
+
+<div class="app">
+    <div class="brand-header">
+        <div class="brand-title-box">
+            <h1>Студия на Волге 🌊</h1>
+            <span style="color:#94a3b8; font-size:12px; font-weight:700;">МАТЕРИАЛЫ И РАБОТА</span>
+        </div>
+        <div class="total-box">
+            <small>ИТОГО</small>
+            <b id="v-total">0 ₽</b>
+        </div>
+    </div>
+
+    <div class="stats">
+        <div class="st-header"><span>📦 Материалы <span id="p-m">0%</span></span><span>🛠️ Работа <span id="p-w">0%</span></span></div>
+        <div class="bar-bg"><div id="bar-m" class="bar-fill" style="background: var(--accent);"></div><div id="bar-w" class="bar-fill" style="background: var(--dark);"></div></div>
+        <div id="bar-cats" class="bar-bg" style="height: 6px; margin-bottom: 8px;"></div>
+        <div id="leg-cats" style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;"></div>
+    </div>
+
+    <div class="input-group">
+        <label>Добавить операцию</label>
+        <input type="date" id="f-date">
+        <input type="text" id="f-name" placeholder="Название (материалы или работа)">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <input type="number" id="f-price" placeholder="Сумма ₽">
+            <input type="text" id="f-store" placeholder="Магазин / ФИО">
+        </div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <select id="f-type">
+                <option value="📦 Материалы">📦 Материалы</option>
+                <option value="🛠️ Работа">🛠️ Работа</option>
+            </select>
+            <select id="f-cat">
+                <option value="🧱 Стены">🧱 Стены</option>
+                <option value="🪵 Пол">🪵 Пол</option>
+                <option value="🛁 Ванная">🛁 Ванная</option>
+                <option value="⚡ Электрика">⚡ Электрика</option>
+                <option value="☁️ Потолок">☁️ Потолок</option>
+                <option value="🛋️ Мебель">🛋️ Мебель</option>
+                <option value="💻 Техника">💻 Техника</option>
+                <option value="📦 Упаковка">📦 Упаковка</option>
+            </select>
+        </div>
+        <input type="file" id="f-img" accept="image/*" style="display:none;" onchange="compressImg(this)">
+        <div class="photo-btn" onclick="document.getElementById('f-img').click()" id="p-status">📸 ПРИКРЕПИТЬ ФОТО / ЧЕК</div>
+    </div>
+
+    <button onclick="save()" class="btn-main">Добавить запись</button>
+
+    <div style="margin-top: 25px;">
+        <input type="text" id="q-search" class="search-box" placeholder="🔍 Поиск..." oninput="render()">
+    </div>
+
+    <div class="f-scroll">
+        <div class="chip active" onclick="setF('t','Все',this)">Все типы</div>
+        <div class="chip" onclick="setF('t','📦 Материалы',this)">📦 Материалы</div>
+        <div class="chip" onclick="setF('t','🛠️ Работа',this)">🛠️ Работа</div>
+    </div>
+
+    <div class="f-scroll">
+        <div class="chip active" onclick="setF('c','Все',this)">Все категории</div>
+        <div class="chip" onclick="setF('c','🧱 Стены',this)">🧱 Стены</div>
+        <div class="chip" onclick="setF('c','🪵 Пол',this)">🪵 Пол</div>
+        <div class="chip" onclick="setF('c','🛁 Ванная',this)">🛁 Ванная</div>
+        <div class="chip" onclick="setF('c','⚡ Электрика',this)">⚡ Электрика</div>
+        <div class="chip" onclick="setF('c','☁️ Потолок',this)">☁️ Потолок</div>
+        <div class="chip" onclick="setF('c','🛋️ Мебель',this)">🛋️ Мебель</div>
+        <div class="chip" onclick="setF('c','💻 Техника',this)">💻 Техника</div>
+        <div class="chip" onclick="setF('c','📦 Упаковка',this)">📦 Упаковка</div>
+    </div>
+    
+    <div id="list"></div>
+
+    <div style="margin-top: 30px; border-top: 1px dashed #cbd5e1; padding-top: 20px;">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+            <button onclick="ex()" style="background:white; border:1px solid #ddd; border-radius:12px; padding:10px; font-size:10px; font-weight:800; color:#64748b; cursor:pointer;">ЭКСПОРТ</button>
+            <button onclick="im()" style="background:#cbd5e1; border:none; border-radius:12px; padding:10px; font-size:10px; font-weight:800; color:white; cursor:pointer;">ИМПОРТ</button>
+        </div>
+        <input type="text" id="io-box" placeholder="Код данных для сохранения" style="margin-top:10px; height:35px; font-size:10px; border:1px solid #e2e8f0; border-radius:10px; width:100%; padding: 5px; text-align: center;">
+    </div>
+</div>
+
+<script>
+    let db = JSON.parse(localStorage.getItem('volga_v66')) || [];
+    let curF = { t: 'Все', c: 'Все' };
+    let tempImg = "";
+    const colors = {'🧱 Стены':'#f59e0b','🪵 Пол':'#84cc16','🛁 Ванная':'#3b82f6','⚡ Электрика':'#ef4444','☁️ Потолок':'#06b6d4','🛋️ Мебель':'#ec4899','💻 Техника':'#6366f1','📦 Упаковка':'#78350f'};
+
+    document.getElementById('f-date').value = new Date().toISOString().split('T')[0];
+
+    function compressImg(input) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    const canvas = document.createElement('canvas');
+                    let w = img.width, h = img.height, max = 800;
+                    if (w > h && w > max) { h *= max / w; w = max; }
+                    else if (h > max) { w *= max / h; h = max; }
+                    canvas.width = w; canvas.height = h;
+                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                    tempImg = canvas.toDataURL('image/jpeg', 0.5); 
+                    document.getElementById('p-status').innerText = "✅ ФОТО ПРИНЯТО";
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function setF(k, v, btn) {
+        Array.from(btn.parentNode.children).forEach(el => el.classList.remove('active'));
+        btn.classList.add('active');
+        curF[k] = v;
+        render();
+    }
+
+    function render() {
+        const list = document.getElementById('list');
+        const query = document.getElementById('q-search').value.toLowerCase();
+        let total = 0, mS = 0, wS = 0, cS = {};
+        Object.keys(colors).forEach(k => cS[k] = 0);
+        
+        db.forEach(i => {
+            let p = Number(i.p);
+            if(i.t.includes('Работа')) wS += p; else mS += p;
+            if(cS.hasOwnProperty(i.cat)) cS[i.cat] += p;
+        });
+
+        list.innerHTML = '';
+        const fil = db.filter(i => {
+            const matchType = (curF.t === 'Все' || i.t === curF.t);
+            const matchCat = (curF.c === 'Все' || i.cat === curF.c);
+            const matchSearch = (i.n.toLowerCase().includes(query));
+            return matchType && matchCat && matchSearch;
+        });
+
+        fil.sort((a,b)=>new Date(b.d)-new Date(a.d)).forEach(i => {
+            total += Number(i.p);
+            list.innerHTML += `<div class="card ${i.t.includes('Работа')?'is-work':''}">
+                <div>
+                    <div style="font-size:10px; font-weight:800; color:#94a3b8;">${new Date(i.d).toLocaleDateString('ru-RU')} • ${i.cat}</div>
+                    <div style="font-weight:700;">${i.n}</div>
+                </div>
+                <div style="text-align:right;">
+                    <div style="color:var(--main); font-weight:800;">${Number(i.p).toLocaleString()} ₽</div>
+                    <div style="display:flex; gap:6px; margin-top:8px;">
+                        ${i.img ? `<div class="icon-btn" onclick="openImg('${i.img}')">🖼️</div>` : ''}
+                        <div class="icon-btn" onclick="del('${i.id}')">🗑️</div>
+                    </div>
+                </div>
+            </div>`;
+        });
+
+        document.getElementById('v-total').innerText = total.toLocaleString() + ' ₽';
+        let grand = mS + wS;
+        if(grand > 0) {
+            document.getElementById('bar-m').style.width = (mS/grand*100)+'%';
+            document.getElementById('bar-w').style.width = (wS/grand*100)+'%';
+            document.getElementById('p-m').innerText = Math.round(mS/grand*100)+'%';
+            document.getElementById('p-w').innerText = Math.round(wS/grand*100)+'%';
+            document.getElementById('bar-cats').innerHTML = Object.keys(colors).map(k => cS[k]>0 ? `<div style="width:${(cS[k]/grand*100)}%; background:${colors[k]}; height:100%"></div>` : '').join('');
+        }
+        localStorage.setItem('volga_v66', JSON.stringify(db));
+    }
+
+    function openImg(src) { document.getElementById('m-img').src = src; document.getElementById('p-modal').style.display = 'flex'; }
+
+    function save() {
+        const n = document.getElementById('f-name').value, p = document.getElementById('f-price').value, d = document.getElementById('f-date').value;
+        if(!n || !p || !d) return alert('Заполните данные!');
+        db.unshift({ id: Date.now().toString(), d: d, n: n, p: p, t: document.getElementById('f-type').value, cat: document.getElementById('f-cat').value, img: tempImg });
+        document.getElementById('f-name').value = ''; document.getElementById('f-price').value = ''; 
+        tempImg = ""; document.getElementById('p-status').innerText = "📸 ПРИКРЕПИТЬ ФОТО / ЧЕК";
+        render();
+    }
+
+    function del(id) { if(confirm('Удалить?')) { db = db.filter(i => i.id !== id); render(); } }
+    
+    function ex() { 
+        const code = btoa(unescape(encodeURIComponent(JSON.stringify(db))));
+        document.getElementById('io-box').value = code;
+        alert('Код готов! Скопируйте его в Заметки.');
+    }
+    function im() { try { const code = document.getElementById('io-box').value; db = JSON.parse(decodeURIComponent(escape(atob(code)))); render(); } catch(e){ alert('Ошибка кода!'); } }
+</script>
+</body>
+</html>
