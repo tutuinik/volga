@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Сметы Волги">
     
-    <title>Студия на Волге V66.1 - Final Stable</title>
+    <title>Студия на Волге V66.1 - Final Full</title>
     <style>
         :root { 
             --main: #4d8b81; 
@@ -147,6 +147,8 @@
     
     <div id="list"></div>
 
+    <button onclick="generateReport()" class="btn-main" style="background: var(--dark); margin-top: 15px;">📄 СФОРМИРОВАТЬ ОТЧЕТ</button>
+
     <div style="margin-top: 30px; border-top: 1px dashed #cbd5e1; padding-top: 20px;">
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
             <button onclick="ex()" style="background:white; border:1px solid #ddd; border-radius:12px; padding:10px; font-size:10px; font-weight:800; color:#64748b; cursor:pointer;">ЭКСПОРТ</button>
@@ -198,7 +200,6 @@
         let total = 0, mS = 0, wS = 0, cS = {};
         Object.keys(colors).forEach(k => cS[k] = 0);
         
-        // Авто-исправление ID для старых записей
         db.forEach((i, idx) => { if(!i.id) i.id = "v" + idx + Date.now(); });
 
         db.forEach(i => {
@@ -250,48 +251,47 @@
     function save() {
         const n = document.getElementById('f-name').value, p = document.getElementById('f-price').value, d = document.getElementById('f-date').value;
         if(!n || !p || !d) return alert('Заполните данные!');
-        db.unshift({ 
-            id: Date.now().toString(), 
-            d: d, 
-            n: n, 
-            p: p, 
-            t: document.getElementById('f-type').value, 
-            cat: document.getElementById('f-cat').value, 
-            img: tempImg 
-        });
+        db.unshift({ id: Date.now().toString(), d: d, n: n, p: p, t: document.getElementById('f-type').value, cat: document.getElementById('f-cat').value, img: tempImg });
         document.getElementById('f-name').value = ''; document.getElementById('f-price').value = ''; 
         tempImg = ""; document.getElementById('p-status').innerText = "📸 ПРИКРЕПИТЬ ФОТО / ЧЕК";
         render();
     }
 
-    function delItem(id) { 
-        if(confirm('Удалить эту запись?')) { 
-            db = db.filter(i => i.id !== id); 
-            render(); 
-        } 
-    }
+    function delItem(id) { if(confirm('Удалить запись?')) { db = db.filter(i => i.id !== id); render(); } }
 
     function editItem(id) {
         const i = db.find(x => x.id === id);
         if(!i) return;
-        document.getElementById('f-date').value = i.d;
-        document.getElementById('f-name').value = i.n;
-        document.getElementById('f-price').value = i.p;
-        document.getElementById('f-type').value = i.t;
-        document.getElementById('f-cat').value = i.cat;
-        tempImg = i.img || "";
-        if(tempImg) document.getElementById('p-status').innerText = "✅ ФОТО ЕСТЬ";
-        
-        db = db.filter(x => x.id !== id);
-        render();
-        window.scrollTo({top: 0, behavior: 'smooth'});
+        document.getElementById('f-date').value = i.d; document.getElementById('f-name').value = i.n;
+        document.getElementById('f-price').value = i.p; document.getElementById('f-type').value = i.t;
+        document.getElementById('f-cat').value = i.cat; tempImg = i.img || "";
+        db = db.filter(x => x.id !== id); render(); window.scrollTo(0,0);
     }
     
-    function ex() { 
-        const code = btoa(unescape(encodeURIComponent(JSON.stringify(db))));
-        document.getElementById('io-box').value = code;
-        alert('Код готов! Скопируйте его для сохранения.');
+    function generateReport() {
+        const query = document.getElementById('q-search').value.toLowerCase();
+        const fil = db.filter(i => {
+            const matchType = (curF.t === 'Все' || i.t === curF.t);
+            const matchCat = (curF.c === 'Все' || i.cat === curF.c);
+            const matchSearch = (i.n.toLowerCase().includes(query));
+            return matchType && matchCat && matchSearch;
+        }).sort((a,b)=>new Date(b.d)-new Date(a.d));
+        let t=0, m=0, w=0, cS={}; Object.keys(colors).forEach(k=>cS[k]=0);
+        let tableHTML = '', lastDate = '';
+        fil.forEach(i => {
+            let pVal = Number(i.p); t += pVal; if(i.t.includes('Работа')) w += pVal; else m += pVal; cS[i.cat] += pVal;
+            let curDate = new Date(i.d).toLocaleDateString('ru-RU', {day:'numeric', month:'long', year:'numeric'});
+            if(curDate !== lastDate) { tableHTML += `<tr><td colspan="4" style="background:#f8fafc; padding:12px; font-weight:800; color:#64748b; font-size:11px;">🗓 ${curDate}</td></tr>`; lastDate = curDate; }
+            tableHTML += `<tr style="background:white;"><td style="width:4px; padding:0; background:${colors[i.cat]};"></td><td style="padding:12px;"><div style="font-weight:700; font-size:14px;">${i.n}</div><div style="font-size:11px; color:#94a3b8;">${i.cat}</div></td><td style="padding:12px; font-size:11px; text-align:center;">${i.t}</td><td style="padding:12px; text-align:right; font-weight:800; color:var(--main);">${pVal.toLocaleString()} ₽</td></tr>`;
+        });
+        let mP=Math.round(m/t*100)||0, wP=Math.round(w/t*100)||0, last=0;
+        let grad=Object.keys(colors).map(k=>{if(cS[k]===0) return ''; let p=(cS[k]/t*100); let s=` ${colors[k]} ${last}% ${last+p}%`; last+=p; return s;}).filter(x=>x).join(',');
+        const win = window.open('', '_blank');
+        win.document.write(`<html><head><meta charset="UTF-8"><style>body{font-family:sans-serif; background:#f1f5f9; padding:20px;} .paper{background:white; border-radius:30px; padding:30px; max-width:800px; margin:auto;} .h{display:flex; justify-content:space-between; border-bottom:2px solid #eee; padding-bottom:20px; margin-bottom:20px;} .box{background:#f8fafc; padding:15px; border-radius:20px; display:flex; align-items:center; gap:15px; flex:1;} .pie{width:60px; height:60px; border-radius:50%;} table{width:100%; border-collapse:collapse;} .nav-btn{padding:10px 20px; border-radius:10px; border:none; color:white; font-weight:bold; cursor:pointer; margin-bottom:20px;} @media print {.nav-btn {display:none;}}</style></head><body><button onclick="window.close()" class="nav-btn" style="background:#64748b;">⬅ НАЗАД</button><button onclick="window.print()" class="nav-btn" style="background:#4d8b81; float:right;">🖨 ПЕЧАТЬ</button><div class="paper"><div class="h"><div><h1 style="margin:0; color:#4d8b81;">Студия на Волге 🌊</h1><p style="color:#94a3b8; font-weight:700; margin:0;">ОТЧЕТ ПО СМЕТЕ</p></div><div style="text-align:right"><small>ИТОГО</small><h1 style="margin:0;">${t.toLocaleString()} ₽</h1></div></div><div style="display:flex; gap:15px; margin-bottom:30px;"><div class="box"><div class="pie" style="background:conic-gradient(#4d8b81 ${mP}%, #1e293b 0)"></div><div><small>📦 МАТЕРИАЛЫ: ${mP}%<br>🛠️ РАБОТА: ${wP}%</small></div></div><div class="box"><div class="pie" style="background:conic-gradient(${grad})"></div><div style="font-size:9px; font-weight:800; display:grid; grid-template-columns:1fr 1fr; gap:3px 10px;">${Object.keys(colors).filter(k=>cS[k]>0).map(k=>`<span><b style="color:${colors[k]}">■</b> ${k} ${Math.round(cS[k]/t*100)}%</span>`).join('')}</div></div></div><table><tbody>${tableHTML}</tbody></table></div></body></html>`);
+        win.document.close();
     }
+
+    function ex() { const code = btoa(unescape(encodeURIComponent(JSON.stringify(db)))); document.getElementById('io-box').value = code; alert('Код скопирован!'); }
     function im() { try { const code = document.getElementById('io-box').value; db = JSON.parse(decodeURIComponent(escape(atob(code)))); render(); } catch(e){ alert('Ошибка кода!'); } }
 </script>
 </body>
